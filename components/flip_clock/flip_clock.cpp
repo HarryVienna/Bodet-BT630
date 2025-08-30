@@ -1,5 +1,3 @@
-// main/FlipClock.cpp
-
 #include "flip_clock.hpp"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -22,7 +20,7 @@ FlipClock::FlipClock(gpio_num_t enable_pin, gpio_num_t input1_pin, gpio_num_t in
     ESP_LOGI(TAG, "FlipClock-Objekt wird erstellt.");
     _init_gpio();
 
-    // Dummy-Impulse direkt hier senden, um den Motor zu initialisieren
+    // Dummy-Impulse senden, um den Motor zu initialisieren
     ESP_LOGI(TAG, "Sende 2 Initialisierungsimpulse zur Motor-Polarisierung...");
     sendPulses(2);
 }

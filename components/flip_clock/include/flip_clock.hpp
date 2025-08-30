@@ -1,5 +1,3 @@
-// main/FlipClock.hpp
-
 #ifndef FLIPCLOCK_HPP
 #define FLIPCLOCK_HPP
 
@@ -46,4 +44,4 @@ private:
     int _polarity_level;    // Die aktuelle Polarität für den Schrittmotor (0 oder 1)
 };
 
-#endif // FLIPCLOCK_HPP
+#endif

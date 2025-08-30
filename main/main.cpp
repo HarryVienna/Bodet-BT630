@@ -38,7 +38,7 @@ extern "C" void app_main(void) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
     
-    clock.setTime(provisioner.get_provisioned_hour(), provisioner.get_provisioned_minute()); // TODO
+    clock.setTime(provisioner.get_provisioned_hour(), provisioner.get_provisioned_minute());
 
     // Hauptschleife: Einfach und sauber
     while (true) {
