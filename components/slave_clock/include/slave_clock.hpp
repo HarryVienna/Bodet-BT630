@@ -1,15 +1,15 @@
-#ifndef FLIPCLOCK_HPP
-#define FLIPCLOCK_HPP
+#ifndef SLAVECLOCK_HPP
+#define SLAVECLOCK_HPP
 
 #include "driver/gpio.h"
 #include <time.h>
 
-class FlipClock {
+class SlaveClock {
 public:
     // --- Öffentliche Schnittstelle ---
 
     // Konstruktor: Initialisiert die Uhr mit den nötigen Pins und Timings
-    FlipClock(gpio_num_t enable_pin, gpio_num_t input1_pin, gpio_num_t input2_pin,
+    SlaveClock(gpio_num_t enable_pin, gpio_num_t input1_pin, gpio_num_t input2_pin,
               int pulse_width_ms, int pulse_interval_ms);
 
     // Setzt die Startzeit der Uhr (z.B. 10:30)

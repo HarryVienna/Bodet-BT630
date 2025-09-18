@@ -141,7 +141,9 @@ esp_err_t WifiProvisioner::start_web_server_() {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
     config.max_uri_handlers = 10;    // Erlaube mehr URI-Handler (gute Praxis)
-    config.max_req_hdr_len  = 1024;  // Der Standardwert ist oft 512 Bytes. Wir verdoppeln ihn.
+    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
+    config.max_req_hdr_len  = 1024;  // Der Standardwert ist oft 512 Bytes. Wir verdoppeln ihn. Ab IDF 5.5 verfügbar:
+    #endif
     config.max_resp_headers = 10;    // Erlaube mehr Response-Header (gute Praxis)
     config.uri_match_fn = httpd_uri_match_wildcard;
 
@@ -328,7 +330,6 @@ esp_err_t WifiProvisioner::captive_portal_handler_(httpd_req_t *r) {
 }
 
 esp_err_t WifiProvisioner::scan_get_handler_(httpd_req_t *req) {
-    ESP_LOGI(TAG, "==> /scan.json Handler wurde vom Client aufgerufen.");
 
     // 1. WLAN-Scan durchführen
     uint16_t num_aps = 0;
@@ -347,9 +348,13 @@ esp_err_t WifiProvisioner::scan_get_handler_(httpd_req_t *req) {
     std::vector<wifi_ap_record_t> ap_records(num_aps);
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&num_aps, ap_records.data()));
 
-    // 2. Liste alphabetisch sortieren
+    // 2. Liste  sortieren
     std::sort(ap_records.begin(), ap_records.end(), [](const wifi_ap_record_t& a, const wifi_ap_record_t& b) {
-        return strcmp((const char*)a.ssid, (const char*)b.ssid) < 0;
+        // alphabetische Sortierung:
+        // return strcmp((const char*)a.ssid, (const char*)b.ssid) < 0;
+
+        // Sortierung nach RSSI (absteigend, da höhere Werte besser sind):
+        return a.rssi > b.rssi;
     });
 
     // 3. JSON aus der sortierten Liste erstellen
@@ -403,17 +408,17 @@ esp_err_t WifiProvisioner::save_post_handler_(httpd_req_t *req) {
     char password_decoded[64] = {0};
     char timezone_encoded[128] = {0};
     char timezone_decoded[128] = {0};
-
     char hours_str[4] = {0};
     char minutes_str[4] = {0};
+
 
     // Extrahiere die Key-Value-Paare aus dem POST-Body
     if (httpd_query_key_value(content.c_str(), "ssid", ssid_encoded, sizeof(ssid_encoded)) != ESP_OK ||
         httpd_query_key_value(content.c_str(), "timezone", timezone_encoded, sizeof(timezone_encoded)) != ESP_OK ||
-        
+
         httpd_query_key_value(content.c_str(), "hours", hours_str, sizeof(hours_str)) != ESP_OK ||
         httpd_query_key_value(content.c_str(), "minutes", minutes_str, sizeof(minutes_str)) != ESP_OK ||
- 
+
         strlen(ssid_encoded) == 0 || strlen(timezone_encoded) == 0) {
         
         ESP_LOGE(TAG, "Bad request: ssid or timezone parameter missing.");
@@ -430,17 +435,18 @@ esp_err_t WifiProvisioner::save_post_handler_(httpd_req_t *req) {
     url_decode(ssid_decoded,   ssid_encoded,   sizeof(ssid_decoded));
     url_decode(password_decoded, password_encoded, sizeof(password_decoded));
     url_decode(timezone_decoded, timezone_encoded, sizeof(timezone_decoded));
-    ESP_LOGI(TAG, "Credentials temporarily stored. Decoded timezone: %s", timezone_decoded);
 
     // Speichere die empfangenen und dekodierten Daten in den Member-Variablen der Klasse
     provisioner->_ssid = ssid_decoded;
     provisioner->_password = password_decoded;
     provisioner->_timezone = timezone_decoded;
+    ESP_LOGI(TAG, "Credentials temporarily stored. Decoded timezone: %s", timezone_decoded);
 
     // Wandle die Zeit-Strings in Zahlen um und speichere sie
     provisioner->_provisioned_hour = atoi(hours_str);
     provisioner->_provisioned_minute = atoi(minutes_str);
     ESP_LOGI(TAG, "Received Time: %02d:%02d", provisioner->_provisioned_hour, provisioner->_provisioned_minute);
+
 
     // Wenn das `persistent_storage`-Flag gesetzt wurde, speichere die Daten auch dauerhaft im NVS
     if (provisioner->_persistent_storage) {

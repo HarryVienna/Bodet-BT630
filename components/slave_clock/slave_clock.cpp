@@ -1,13 +1,13 @@
-#include "flip_clock.hpp"
+#include "slave_clock.hpp"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
 #include <time.h> 
 
-static const char* TAG = "FLIP_CLOCK";
+static const char* TAG = "SLAVE_CLOCK";
 
 // Konstruktor
-FlipClock::FlipClock(gpio_num_t enable_pin, gpio_num_t input1_pin, gpio_num_t input2_pin,
+SlaveClock::SlaveClock(gpio_num_t enable_pin, gpio_num_t input1_pin, gpio_num_t input2_pin,
                      int pulse_width_ms, int pulse_interval_ms)
     : _enable_pin(enable_pin),
       _input1_pin(input1_pin),
@@ -17,7 +17,7 @@ FlipClock::FlipClock(gpio_num_t enable_pin, gpio_num_t input1_pin, gpio_num_t in
       _clock_time(0),
       _polarity_level(0)
 {
-    ESP_LOGI(TAG, "FlipClock-Objekt wird erstellt.");
+    ESP_LOGI(TAG, "SlaveClock-Objekt wird erstellt.");
     _init_gpio();
 
     // Dummy-Impulse senden, um den Motor zu initialisieren
@@ -26,7 +26,7 @@ FlipClock::FlipClock(gpio_num_t enable_pin, gpio_num_t input1_pin, gpio_num_t in
 }
 
 // Private Helferfunktion zur GPIO-Initialisierung
-void FlipClock::_init_gpio() {
+void SlaveClock::_init_gpio() {
     gpio_reset_pin(_enable_pin);
     gpio_set_direction(_enable_pin, GPIO_MODE_OUTPUT);
     gpio_reset_pin(_input1_pin);
@@ -37,12 +37,12 @@ void FlipClock::_init_gpio() {
 }
 
 // Öffentliche Methode zum Senden von Impulsen
-void FlipClock::sendPulses(int count) {
+void SlaveClock::sendPulses(int count) {
     _send_pulses_internal(count);
 }
 
 // Interne Methode, die die eigentliche Arbeit macht
-void FlipClock::_send_pulses_internal(int count) {
+void SlaveClock::_send_pulses_internal(int count) {
     if (count <= 0) return;
     ESP_LOGI(TAG, "Sende %d Impuls(e)...", count);
 
@@ -64,7 +64,7 @@ void FlipClock::_send_pulses_internal(int count) {
 }
 
 // Setzt die Startzeit der Uhr
-void FlipClock::setTime(uint8_t hour, uint8_t minute) {
+void SlaveClock::setTime(uint8_t hour, uint8_t minute) {
     struct tm real_time_info;
     time_t now;
     time(&now);
@@ -79,11 +79,11 @@ void FlipClock::setTime(uint8_t hour, uint8_t minute) {
 
     char time_buf[64];
     strftime(time_buf, sizeof(time_buf), "%d.%m.%Y %H:%M:%S", &clock_time_info);
-    ESP_LOGI(TAG, "FlipClock Start-Zeitstempel gesetzt auf: %s", time_buf);
+    ESP_LOGI(TAG, "SlaveClock Start-Zeitstempel gesetzt auf: %s", time_buf);
 }
 
 // Prüft die Zeit und aktualisiert die Uhr
-void FlipClock::update() {
+void SlaveClock::update() {
     time_t now;
     time(&now);
     
@@ -92,13 +92,30 @@ void FlipClock::update() {
         return; 
     }
 
+    // Puffer, um Datum und Zeit aufzunehmen (z.B. "DD.MM.YYYY HH:MM:SS\0")
+    char real_time_str[30];
+    char clock_time_str[30];
+    struct tm timeinfo;
+
+    // 1. Reale Systemzeit mit Datum formatieren
+    localtime_r(&now, &timeinfo);
+    strftime(real_time_str, sizeof(real_time_str), "%d.%m.%Y %H:%M:%S", &timeinfo);
+
+    // 2. Intern gespeicherte Zeit der Uhr mit Datum formatieren
+    localtime_r(&_clock_time, &timeinfo);
+    strftime(clock_time_str, sizeof(clock_time_str), "%d.%m.%Y %H:%M:%S", &timeinfo);
+
+    // 3. Beide Zeiten ausgeben
+    ESP_LOGI(TAG, "Reale Zeit = %s, Angezeigte Zeit = %s", real_time_str, clock_time_str);
+
+
     time_t current_minute_floored = (now / 60) * 60;
 
     if (_clock_time < current_minute_floored) {
-        int minutes_to_flip = (current_minute_floored - _clock_time) / 60;
-        ESP_LOGI(TAG, "Uhr geht %d Minute(n) nach. Sende Impuls(e)...", minutes_to_flip);
+        int minutes_to_move = (current_minute_floored - _clock_time) / 60;
+        ESP_LOGI(TAG, "Uhr geht %d Minute(n) nach. Sende Impuls(e)...", minutes_to_move);
         
-        _send_pulses_internal(minutes_to_flip);
+        _send_pulses_internal(minutes_to_move);
         
         _clock_time = current_minute_floored;
         ESP_LOGI(TAG, "Zeit ist wieder synchron.");

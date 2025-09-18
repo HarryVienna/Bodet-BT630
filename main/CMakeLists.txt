@@ -2,4 +2,4 @@
 
 idf_component_register(SRCS "main.cpp"
                        INCLUDE_DIRS "."
-                       REQUIRES flip_clock wifi_provisioner)
+                       REQUIRES slave_clock wifi_provisioner)

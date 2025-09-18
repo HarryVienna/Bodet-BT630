@@ -2,7 +2,7 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include <time.h> 
-#include "flip_clock.hpp"
+#include "slave_clock.hpp"
 #include "wifi_provisioner.hpp"
 
 static const char* TAG = "MAIN_APP";
@@ -17,7 +17,7 @@ static const char* TAG = "MAIN_APP";
 extern "C" void app_main(void) {
     ESP_LOGI(TAG, "Application starting...");
 
-    FlipClock clock(PULSE_GPIO_ENABLE, PULSE_GPIO_INPUT1, PULSE_GPIO_INPUT2,
+    SlaveClock clock(PULSE_GPIO_ENABLE, PULSE_GPIO_INPUT1, PULSE_GPIO_INPUT2,
                     PULSE_WIDTH_MS, PULSE_INTERVAL_MS);
 
     WifiProvisioner provisioner;
@@ -25,10 +25,10 @@ extern "C" void app_main(void) {
     if (provisioner.is_provisioned()) {
         provisioner.get_credentials();
     } else {
-        provisioner.start_provisioning("BT630 Setup", false);
+        provisioner.start_provisioning("Bodet BT 6.30 Setup", false);
     }
 
-    provisioner.connect_sta("BT630 Clock");
+    provisioner.connect_sta("Bodet BT 6.30 Clock");
 
     while(!provisioner.is_time_synchronized()) {
 
@@ -40,7 +40,7 @@ extern "C" void app_main(void) {
     
     clock.setTime(provisioner.get_provisioned_hour(), provisioner.get_provisioned_minute());
 
-    // Hauptschleife: Einfach und sauber
+    // Hauptschleife
     while (true) {
         clock.update();
         vTaskDelay(pdMS_TO_TICKS(1000));
