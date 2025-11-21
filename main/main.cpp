@@ -25,10 +25,10 @@ extern "C" void app_main(void) {
     if (provisioner.is_provisioned()) {
         provisioner.get_credentials();
     } else {
-        provisioner.start_provisioning("Bodet BT 6.30 Setup", false);
+        provisioner.start_provisioning("BT 6.30 Clock Setup", false);
     }
 
-    provisioner.connect_sta("Bodet BT 6.30 Clock");
+    provisioner.connect_sta("BT 6.30 Clock");
 
     while(!provisioner.is_time_synchronized()) {
 
