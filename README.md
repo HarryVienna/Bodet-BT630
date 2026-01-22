@@ -1,5 +1,8 @@
-# Bodet BT 6.30 Klappzahlen-Nebenuhr mit ESP32 Steuerung
+# Bodet BT 6.30 Slave Flip Clock with ESP32 Control
 
-Eine alte Bodet BT 6.30 Klappzahlenuhr bekommt eine zweite Chance! Was als günstiger Fund auf einem Kleinanzeigenportal begann, entpuppte sich als echtes Bastel-Abenteuer. Die Front zerkratzt, das Logo abgebrochen und im Inneren verkohlte Bauteile. Ich zeige dir, wie ich die Nebenuhr nicht nur optisch restauriert, sondern mit einem ESP32 ins 21. Jahrhundert geholt habe.
+An old Bodet BT 6.30 flip clock gets a second chance! What started as a bargain find on a classifieds portal turned out to be a real DIY adventure. The front was scratched, the logo broken off, and the components inside were charred. I'll show you how I not only restored the slave clock visually, but also brought it into the 21st century with an ESP32.
 
-Eine genaue Beschreibung gibt es hier:  [https://www.haraldkreuzer.net/aktuelles/bodet-bt-630-klappzahlen-nebenuhr-mit-esp32-steuerung](https://www.haraldkreuzer.net/aktuelles/bodet-bt-630-klappzahlen-nebenuhr-mit-esp32-steuerung)
+A detailed description can be found here: ([https://www.haraldkreuzer.net/aktuelles/bodet-bt-630-klappzahlen-nebenuhr-mit-esp32-steuerung](https://www.haraldkreuzer.net/en/news/bodet-bt-630-slave-flip-clock-esp32-control))
+
+![e694f59b-b3df-4dc1-9865-be8398d1c72c](https://github.com/user-attachments/assets/a8228345-3fe1-4ab5-b1cf-cb7ebe8fcdd9)
+
